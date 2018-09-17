@@ -1,0 +1,29 @@
+{
+    "debug": true,
+    "hostname": "win-test-agent",
+    "ip": "",
+    "heartbeat": {
+        "enabled": true,
+        "addr": "35.164.138.6:6030",
+        "interval": 60,
+        "timeout": 1000
+    },
+    "transfer": {
+        "enabled": true,
+        "addrs": [
+            "35.164.138.6:8433",
+            "35.164.138.6:8433"
+        ],
+        "interval": 60,
+        "timeout": 1000
+    },
+    "http": {
+        "enabled": true,
+        "listen": ":1988"
+    },
+    "collector": {
+        "ifacePrefixIgnore": ["Loopback", "Teredo Tunneling", "isatap", "6TO4 Adapter"]
+    },
+    "ignore": [
+    ]
+}
