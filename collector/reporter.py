@@ -1,9 +1,9 @@
-import time
-import logging
-
 from rpc.hbs import report_status_to_hbs
 from rpc.hbs import get_hbs_builtinmetrics
 from utils import g
+
+import time
+import logging
 
 
 def report():
@@ -23,6 +23,7 @@ def report():
     except Exception as e:
         logging.error(e, exc_info=True)
     logging.info("report to hbs --> %s" % res)
+
 
 def get_BuiltinMetrics():
     """

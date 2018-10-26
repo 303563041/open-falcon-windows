@@ -57,6 +57,7 @@ COUNTERS = [
 # services
 SERVICES = [('W3SVC', 'service.alive')]
 
+
 def collect():
     """
     collect iis metric

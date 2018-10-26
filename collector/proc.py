@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Collect Host's proc metric
 """
@@ -27,13 +28,31 @@ def is_start(proc_name):
     return flag
 
 
+def get_process_info(service_name):
+    """
+    return process info
+    :param mem: process mem
+    :param cpu: process cpu
+    :param io: process io(read、write)
+    :param thread: process thread num
+    """
+    try:
+        proc_pid = psutil.win_service_get(service_name).pid()
+        p = psutil.Process(proc_pid)
+        mem = p.memory_info()[0]
+        cpu = p.cpu_percent(interval=1)
+        io = p.io_counters()
+        return mem, cpu, io
+    except Exception, e:
+        return
+
+
 def collect():
     """
     collect proc num
     """
     logging.debug('enter proc collect')
     push_interval = 60
-    zh_decode = "gbk"
 
     time_now = int(time.time())
     payload = []
@@ -42,18 +61,17 @@ def collect():
         t = k + "=" + v
         tags = tags + t + ","
 
-    data = {
-        "endpoint": g.HOSTNAME,
-        "metric": "",
-        "timestamp": time_now,
-        "step": push_interval,
-        "value": "",
-        "counterType": "GAUGE",
-        "tags": tags.strip(",")
-    }
-
     # agent proc num
     for metrics in g.PROC:
+        data = {
+            "endpoint": g.HOSTNAME,
+            "metric": "",
+            "timestamp": time_now,
+            "step": push_interval,
+            "value": "",
+            "counterType": "GAUGE",
+            "tags": tags.strip(",")
+        }
         data["metric"] = metrics["Metric"]
         data["tags"] = metrics["Tags"] + "," + tags.strip(",")
         proc_name = metrics["Tags"].split("=")[1]
@@ -62,6 +80,23 @@ def collect():
         else:
             data["value"] = 1
         payload.append(copy.copy(data))
+
+        # cpu mem io
+        mem, cpu, io = get_process_info(proc_name)
+        proc_metric = [
+            ("cpu.usage.total", "GAUGE", cpu),
+            ("memory.res", "GAUGE", mem),
+            ("io.read_count", "COUNTER", io[0]),
+            ("io.write_count", "COUNTER", io[1]),
+            ("io.read_byte", "COUNTER", io[2]),
+            ("io.write_byte", "COUNTER", io[3])
+        ]
+        if mem or cpu or io:
+            for m, t, name in proc_metric:
+                data["metric"] = m
+                data["counterType"] = t
+                data["value"] = name
+                payload.append(copy.copy(data))
     logging.debug(payload)
 
     try:
